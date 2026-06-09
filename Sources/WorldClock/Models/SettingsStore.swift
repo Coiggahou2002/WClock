@@ -14,6 +14,12 @@ final class SettingsStore: ObservableObject {
     @Published var primaryZoneID: UUID? { didSet { persist() } }
     @Published var use24Hour: Bool { didSet { persist() } }
 
+    /// Global "asleep" window, in whole local hours [start, end). Hours the
+    /// strips shade as night/asleep. Wraps past midnight when start > end
+    /// (e.g. 22 -> 6). Default 00:00-08:00.
+    @Published var asleepStartHour: Int { didSet { persist() } }
+    @Published var asleepEndHour: Int { didSet { persist() } }
+
     private let defaults: UserDefaults
     private let logger = Logger(subsystem: "com.rory.worldclock", category: "settings")
 
@@ -21,7 +27,12 @@ final class SettingsStore: ObservableObject {
         static let zones = "zones.v1"
         static let primary = "primaryZoneID.v1"
         static let use24Hour = "use24Hour.v1"
+        static let asleepStart = "asleepStartHour.v1"
+        static let asleepEnd = "asleepEndHour.v1"
     }
+
+    static let defaultAsleepStart = 0
+    static let defaultAsleepEnd = 8
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -35,6 +46,18 @@ final class SettingsStore: ObservableObject {
             self.use24Hour = Self.localeUses24Hour()
         } else {
             self.use24Hour = defaults.bool(forKey: Key.use24Hour)
+        }
+
+        // Asleep window; clamp persisted values into [0, 23], default 00:00-08:00.
+        if defaults.object(forKey: Key.asleepStart) == nil {
+            self.asleepStartHour = Self.defaultAsleepStart
+        } else {
+            self.asleepStartHour = min(23, max(0, defaults.integer(forKey: Key.asleepStart)))
+        }
+        if defaults.object(forKey: Key.asleepEnd) == nil {
+            self.asleepEndHour = Self.defaultAsleepEnd
+        } else {
+            self.asleepEndHour = min(23, max(0, defaults.integer(forKey: Key.asleepEnd)))
         }
 
         // Primary zone: validate the stored id still exists, else first zone.
@@ -99,6 +122,8 @@ final class SettingsStore: ObservableObject {
         }
         defaults.set(primaryZoneID?.uuidString, forKey: Key.primary)
         defaults.set(use24Hour, forKey: Key.use24Hour)
+        defaults.set(asleepStartHour, forKey: Key.asleepStart)
+        defaults.set(asleepEndHour, forKey: Key.asleepEnd)
     }
 
     private static func loadZones(from defaults: UserDefaults, logger: Logger) -> [ClockZone] {

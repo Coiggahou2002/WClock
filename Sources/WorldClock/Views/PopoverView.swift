@@ -54,7 +54,9 @@ struct PopoverView: View {
                         zone: zone,
                         now: now,
                         use24Hour: settings.use24Hour,
-                        isPrimary: zone.id == settings.primaryZoneID
+                        isPrimary: zone.id == settings.primaryZoneID,
+                        asleepStartHour: settings.asleepStartHour,
+                        asleepEndHour: settings.asleepEndHour
                     )
                 }
             }

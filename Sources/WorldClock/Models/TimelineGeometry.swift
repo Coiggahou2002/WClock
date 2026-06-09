@@ -18,9 +18,10 @@ struct TimelineGeometry {
     let windowHours: Double
     let use24Hour: Bool
 
-    /// Local wall-clock hours [nightEnd, nightStart) count as day; the rest is night.
-    let nightStartHour: Int
-    let nightEndHour: Int
+    /// "Asleep" window in whole local hours [start, end). Wraps past midnight
+    /// when start > end (e.g. 22 -> 6). Default 00:00-08:00.
+    let asleepStartHour: Int
+    let asleepEndHour: Int
 
     init(
         now: Date,
@@ -28,16 +29,16 @@ struct TimelineGeometry {
         width: Double,
         windowHours: Double = 10,
         use24Hour: Bool,
-        nightStartHour: Int = 20,
-        nightEndHour: Int = 6
+        asleepStartHour: Int = 0,
+        asleepEndHour: Int = 8
     ) {
         self.now = now
         self.timeZone = timeZone
         self.width = width
         self.windowHours = windowHours
         self.use24Hour = use24Hour
-        self.nightStartHour = nightStartHour
-        self.nightEndHour = nightEndHour
+        self.asleepStartHour = asleepStartHour
+        self.asleepEndHour = asleepEndHour
     }
 
     private var halfWindowSeconds: Double { windowHours * 3600 / 2 }
@@ -65,6 +66,9 @@ struct TimelineGeometry {
         let x: Double
         let label: String
         let isMidnight: Bool
+        /// True when this hour falls in the asleep window — used to pick a
+        /// label/tick color that contrasts the (dark) asleep band.
+        let isAsleep: Bool
     }
 
     func ticks() -> [Tick] {
@@ -80,7 +84,12 @@ struct TimelineGeometry {
             if tick >= windowStart {
                 let hour = cal.component(.hour, from: tick)
                 result.append(
-                    Tick(x: x(for: tick), label: hourLabel(for: tick, hour: hour), isMidnight: hour == 0)
+                    Tick(
+                        x: x(for: tick),
+                        label: hourLabel(for: tick, hour: hour),
+                        isMidnight: hour == 0,
+                        isAsleep: isAsleep(at: tick)
+                    )
                 )
             }
             guard let next = cal.date(byAdding: .hour, value: 1, to: tick) else { break }
@@ -98,24 +107,31 @@ struct TimelineGeometry {
         return "\(h12)\(suffix)"
     }
 
-    // MARK: - Day / night shading
+    // MARK: - Asleep / awake shading
 
-    struct DayNightSegment: Identifiable {
+    struct AsleepSegment: Identifiable {
         let id = UUID()
         let startX: Double
         let endX: Double
-        let isNight: Bool
+        let isAsleep: Bool
     }
 
-    private func isNight(at date: Date) -> Bool {
+    /// Whether a given instant falls in the asleep window [start, end),
+    /// handling the wrap-past-midnight case (start > end).
+    func isAsleep(at date: Date) -> Bool {
+        guard asleepStartHour != asleepEndHour else { return false } // empty window
         let hour = calendar.component(.hour, from: date)
-        return hour >= nightStartHour || hour < nightEndHour
+        if asleepStartHour < asleepEndHour {
+            return hour >= asleepStartHour && hour < asleepEndHour
+        } else {
+            return hour >= asleepStartHour || hour < asleepEndHour
+        }
     }
 
-    /// Splits the visible window at every dawn/dusk transition and reports each
-    /// region's night/day state. Transitions are computed as exact wall-clock
-    /// instants (06:00 and 20:00 local) on each day the window touches.
-    func dayNightSegments() -> [DayNightSegment] {
+    /// Splits the visible window at every asleep/awake transition and reports
+    /// each region's state. Transitions are exact wall-clock instants at the
+    /// asleep start/end hour on each day the window touches.
+    func asleepSegments() -> [AsleepSegment] {
         let cal = calendar
         var boundaries: Set<Date> = [windowStart, windowEnd]
 
@@ -123,7 +139,7 @@ struct TimelineGeometry {
         let startDay = cal.startOfDay(for: windowStart.addingTimeInterval(-86400))
         var day = startDay
         for _ in 0..<4 {
-            for hour in [nightEndHour, nightStartHour] {
+            for hour in Set([asleepStartHour, asleepEndHour]) {
                 if let t = cal.date(bySettingHour: hour, minute: 0, second: 0, of: day),
                    t > windowStart, t < windowEnd {
                     boundaries.insert(t)
@@ -134,12 +150,12 @@ struct TimelineGeometry {
         }
 
         let sorted = boundaries.sorted()
-        var segments: [DayNightSegment] = []
+        var segments: [AsleepSegment] = []
         for i in 0..<(sorted.count - 1) {
             let a = sorted[i], b = sorted[i + 1]
             let mid = a.addingTimeInterval(b.timeIntervalSince(a) / 2)
             segments.append(
-                DayNightSegment(startX: x(for: a), endX: x(for: b), isNight: isNight(at: mid))
+                AsleepSegment(startX: x(for: a), endX: x(for: b), isAsleep: isAsleep(at: mid))
             )
         }
         return segments

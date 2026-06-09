@@ -55,8 +55,14 @@ ad-hoc code-signs it. No `.xcodeproj` is required.
 
 ## Trade-offs explicitly accepted
 
-- Fixed local "night window" (20:00–06:00) for day/night shading instead of real
-  sunrise/sunset by geolocation — simpler, no location permission, good enough
-  for an at-a-glance awake/asleep cue.
+- A single **global** asleep window (configurable, default 00:00–08:00) for the
+  awake/asleep shading, rather than real sunrise/sunset by geolocation or
+  per-zone schedules — simpler, no location permission, good enough for an
+  at-a-glance awake/asleep cue. Per-zone schedules were considered and
+  deferred; the geometry already takes the window as a parameter, so moving to
+  per-zone later is a localized change.
+- Awake hours are shaded warm/light and asleep hours dark/cool (rather than the
+  original cool-blue "day" band, which read as night and inverted the intended
+  cue); hour labels flip dark/light to stay legible over either band.
 - Status-item title updates once per second via a `Timer`; negligible cost,
   keeps the minute display accurate.

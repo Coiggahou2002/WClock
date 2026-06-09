@@ -15,8 +15,10 @@ A lightweight macOS **menu-bar** app that shows several time zones as stacked
   center line** marks the current instant across every strip — so each zone's
   local time at "now" lines up vertically (e.g. 11:28 Beijing aligns with 04:28
   London on the same line).
-- **Day/night shading** on each strip (night = dark, day = light) so you can see
-  at a glance who's awake. Night window is 20:00–06:00 local.
+- **Asleep/awake shading** on each strip (asleep = dark/cool, awake = warm/light)
+  so you can see at a glance who's up. The asleep window defaults to **00:00–08:00**
+  and is configurable in Settings (editable start/end + one-tap presets), applied
+  globally to every zone. It wraps past midnight (e.g. 22:00–06:00).
 - Hour ticks with labels; midnight is emphasised; each row shows the zone's
   current date and its offset from your local zone (e.g. `-7h`, `+5.5h`).
 
@@ -58,6 +60,9 @@ xattr -dr com.apple.quarantine build/WorldClock.app
   - **Star** a zone to make it the one shown in the menu bar.
   - **Use 24-hour time** toggle.
   - **Launch at login** toggle (works best once the app lives in `/Applications`).
+  - **Sleep / Awake** — set the global asleep window (defaults 00:00–08:00) by
+    editing the start/end hours, or tap a preset: Default (00:00–08:00),
+    Early bird (22:00–06:00), Night owl (02:00–10:00).
 
 ## Configuration storage
 

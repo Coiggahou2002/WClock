@@ -7,6 +7,8 @@ struct TimelineRow: View {
     let now: Date
     let use24Hour: Bool
     let isPrimary: Bool
+    let asleepStartHour: Int
+    let asleepEndHour: Int
 
     private var tz: TimeZone { zone.resolvedTimeZone }
 
@@ -33,8 +35,14 @@ struct TimelineRow: View {
             }
             .frame(width: 132, alignment: .leading)
 
-            TimelineCanvas(now: now, timeZone: tz, use24Hour: use24Hour)
-                .frame(height: 44)
+            TimelineCanvas(
+                now: now,
+                timeZone: tz,
+                use24Hour: use24Hour,
+                asleepStartHour: asleepStartHour,
+                asleepEndHour: asleepEndHour
+            )
+            .frame(height: 44)
         }
     }
 }

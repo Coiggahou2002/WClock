@@ -41,9 +41,13 @@ struct SettingsView: View {
             if let loginError {
                 Text(loginError).font(.caption).foregroundStyle(.red)
             }
+
+            Divider()
+
+            sleepSection
         }
         .padding(20)
-        .frame(width: 420, height: 460)
+        .frame(width: 420, height: 580)
         .sheet(isPresented: $showingAddSheet) {
             AddZoneSheet { identifier in
                 settings.addZone(identifier: identifier)
@@ -52,6 +56,64 @@ struct SettingsView: View {
         .onAppear {
             launchAtLogin = (SMAppService.mainApp.status == .enabled)
         }
+    }
+
+    private var sleepSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Sleep / Awake").font(.headline)
+            Text("Hours shaded as asleep (dark) on every strip. Wraps past midnight.")
+                .font(.caption).foregroundStyle(.secondary)
+
+            HStack(spacing: 6) {
+                Text("Asleep from")
+                Picker("", selection: $settings.asleepStartHour) {
+                    ForEach(0..<24, id: \.self) { Text(hourLabel($0)).tag($0) }
+                }
+                .labelsHidden().frame(width: 92)
+                Text("to")
+                Picker("", selection: $settings.asleepEndHour) {
+                    ForEach(0..<24, id: \.self) { Text(hourLabel($0)).tag($0) }
+                }
+                .labelsHidden().frame(width: 92)
+            }
+
+            Text(asleepCaption).font(.caption).foregroundStyle(.secondary)
+
+            HStack(spacing: 6) {
+                Text("Quick:").font(.caption).foregroundStyle(.secondary)
+                quickButton("Default", start: 0, end: 8)
+                quickButton("Early bird", start: 22, end: 6)
+                quickButton("Night owl", start: 2, end: 10)
+            }
+        }
+    }
+
+    private func quickButton(_ title: String, start: Int, end: Int) -> some View {
+        Button(title) {
+            settings.asleepStartHour = start
+            settings.asleepEndHour = end
+        }
+        .buttonStyle(.bordered)
+        .controlSize(.small)
+    }
+
+    /// Hours asleep, accounting for the midnight wrap.
+    private var asleepDuration: Int {
+        let s = settings.asleepStartHour, e = settings.asleepEndHour
+        if s == e { return 0 }
+        return e > s ? e - s : 24 - s + e
+    }
+
+    private var asleepCaption: String {
+        guard asleepDuration > 0 else { return "No asleep hours set (whole strip shown awake)." }
+        return "Asleep \(hourLabel(settings.asleepStartHour))–\(hourLabel(settings.asleepEndHour)) · \(asleepDuration)h"
+    }
+
+    private func hourLabel(_ hour: Int) -> String {
+        if settings.use24Hour { return String(format: "%02d:00", hour) }
+        let period = hour < 12 ? "AM" : "PM"
+        let h12 = hour % 12 == 0 ? 12 : hour % 12
+        return "\(h12) \(period)"
     }
 
     private var zoneList: some View {
