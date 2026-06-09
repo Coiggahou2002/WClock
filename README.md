@@ -97,8 +97,9 @@ Sources/WorldClock/
   Models/
     ClockZone.swift           Codable, validated zone model
     SettingsStore.swift       persistence + validation + defaults
-    TimelineGeometry.swift     pure tick / day-night math
+    TimelineGeometry.swift     pure tick / asleep-window math
     Formatting.swift          cached time formatters
+    FlagProvider.swift        zone -> country flag (parses system zone.tab)
   Views/
     PopoverView.swift          stacked rows + header/footer + empty state
     TimelineRow.swift          left label block + strip

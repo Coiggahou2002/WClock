@@ -129,6 +129,9 @@ struct SettingsView: View {
                     .buttonStyle(.plain)
                     .help("Show this zone in the menu bar")
 
+                    Text(FlagProvider.flag(for: zone.timeZoneIdentifier))
+                        .font(.system(size: 15))
+
                     TextField("Name", text: labelBinding(for: zone))
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 140)
@@ -202,6 +205,7 @@ struct AddZoneSheet: View {
                     dismiss()
                 } label: {
                     HStack {
+                        Text(FlagProvider.flag(for: id))
                         Text(ClockZone.humanize(identifier: id))
                         Spacer()
                         Text(id).font(.caption).foregroundStyle(.secondary)

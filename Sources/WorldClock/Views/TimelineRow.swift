@@ -13,7 +13,12 @@ struct TimelineRow: View {
     private var tz: TimeZone { zone.resolvedTimeZone }
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
+            // Country flag at the far left, for quick visual scanning.
+            Text(FlagProvider.flag(for: zone.timeZoneIdentifier))
+                .font(.system(size: 22))
+                .frame(width: 26)
+
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 4) {
                     if isPrimary {
@@ -33,7 +38,7 @@ struct TimelineRow: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
-            .frame(width: 132, alignment: .leading)
+            .frame(width: 116, alignment: .leading)
 
             TimelineCanvas(
                 now: now,

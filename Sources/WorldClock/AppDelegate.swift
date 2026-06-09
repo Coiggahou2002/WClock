@@ -55,7 +55,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func updateTitle() {
         guard let button = statusItem?.button else { return }
         if let zone = settings.primaryZone {
-            button.title = " " + TimeText.clock(Date(), in: zone.resolvedTimeZone, use24Hour: settings.use24Hour)
+            // Flag + time so it's clear which zone the menu-bar clock shows
+            // (it need not be local — the system clock already covers local).
+            let flag = FlagProvider.flag(for: zone.timeZoneIdentifier)
+            let time = TimeText.clock(Date(), in: zone.resolvedTimeZone, use24Hour: settings.use24Hour)
+            button.title = " \(flag) \(time)"
         } else {
             button.title = ""
         }
