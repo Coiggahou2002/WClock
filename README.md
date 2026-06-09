@@ -57,7 +57,8 @@ xattr -dr com.apple.quarantine build/WorldClock.app
   - **Rename** — type a friendly name in each row (e.g. "HQ", "Beijing").
   - **Reorder** — drag rows.
   - **Remove** — swipe / delete.
-  - **Star** a zone to make it the one shown in the menu bar.
+  - **Menu bar shows** — pick which zone's time appears in the menu bar (also
+    settable by starring a zone in the list).
   - **Use 24-hour time** toggle.
   - **Launch at login** toggle (works best once the app lives in `/Applications`).
   - **Sleep / Awake** — set the global asleep window (defaults 00:00–08:00) by

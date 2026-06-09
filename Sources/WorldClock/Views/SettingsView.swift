@@ -25,7 +25,7 @@ struct SettingsView: View {
                     Label("Add Zone", systemImage: "plus")
                 }
                 Spacer()
-                Text("Drag to reorder · star = menu bar zone")
+                Text("Drag to reorder · ★ = menu bar zone")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -33,6 +33,7 @@ struct SettingsView: View {
             Divider()
 
             Text("Display").font(.headline)
+            menuBarZonePicker
             Toggle("Use 24-hour time", isOn: $settings.use24Hour)
             Toggle("Launch at login", isOn: $launchAtLogin)
                 .onChange(of: launchAtLogin) { _, newValue in
@@ -55,6 +56,19 @@ struct SettingsView: View {
         }
         .onAppear {
             launchAtLogin = (SMAppService.mainApp.status == .enabled)
+        }
+    }
+
+    private var menuBarZonePicker: some View {
+        HStack {
+            Text("Menu bar shows:")
+            Picker("", selection: $settings.primaryZoneID) {
+                ForEach(settings.zones) { zone in
+                    Text("\(FlagProvider.flag(for: zone.timeZoneIdentifier))  \(zone.label)")
+                        .tag(Optional(zone.id))
+                }
+            }
+            .labelsHidden()
         }
     }
 

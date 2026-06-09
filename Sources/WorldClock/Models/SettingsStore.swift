@@ -60,13 +60,17 @@ final class SettingsStore: ObservableObject {
             self.asleepEndHour = min(23, max(0, defaults.integer(forKey: Key.asleepEnd)))
         }
 
-        // Primary zone: validate the stored id still exists, else first zone.
+        // Menu-bar zone: validate the stored id still exists. With no stored
+        // value, default to the first *non-local* zone (the system menu bar
+        // already shows local time), falling back to the first zone.
         if let raw = defaults.string(forKey: Key.primary),
            let stored = UUID(uuidString: raw),
            self.zones.contains(where: { $0.id == stored }) {
             self.primaryZoneID = stored
         } else {
-            self.primaryZoneID = self.zones.first?.id
+            let localID = TimeZone.current.identifier
+            let firstNonLocal = self.zones.first(where: { $0.timeZoneIdentifier != localID })
+            self.primaryZoneID = (firstNonLocal ?? self.zones.first)?.id
         }
     }
 
