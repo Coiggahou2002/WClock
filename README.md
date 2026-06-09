@@ -38,11 +38,28 @@ A lightweight macOS **menu-bar** app that shows several time zones as stacked
 ## Build & run
 
 ```sh
-./scripts/build_app.sh        # compiles (release) and assembles build/WorldClock.app
+./scripts/build_app.sh        # compiles (release, native arch) and assembles build/WorldClock.app
 open build/WorldClock.app     # launches it; look top-right in the menu bar
 ```
 
 To install it for everyday use, drag `build/WorldClock.app` into `/Applications`.
+
+## Sharing with friends
+
+```sh
+./scripts/make_dmg.sh         # builds a universal (arm64+Intel) app and build/WorldClock.dmg
+```
+
+Send the resulting `build/WorldClock.dmg` along with [SHARING.md](SHARING.md),
+which walks recipients through the drag-to-Applications install and the one-time
+Gatekeeper "Open Anyway" step.
+
+**Important:** the DMG is only a container — it does not remove the first-launch
+security warning. This build is ad-hoc signed, **not** Developer-ID-signed or
+notarized, so recipients must approve it once via *System Settings → Privacy &
+Security → Open Anyway*. Making it open silently for everyone requires a paid
+Apple Developer account ($99/yr) to sign + notarize; that step is intentionally
+out of scope (see [docs/ADR-0001](docs/ADR-0001-stack-and-bundling.md)).
 
 ### First launch (Gatekeeper)
 
