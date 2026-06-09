@@ -4,9 +4,9 @@ import SwiftUI
 /// the shared center line marking "now". Geometry is rebuilt from the live
 /// canvas width so it always fills the available space.
 ///
-/// Colour mapping is intentionally "natural": awake hours are warm and light
-/// (daylight), asleep hours are cool and dark (night). Tick labels flip between
-/// dark and light so they stay legible over whichever band they sit on.
+/// Colour mapping: awake hours use the standard "available" green (the window
+/// when someone is reachable), asleep hours are cool and dark. Tick labels flip
+/// between dark and light so they stay legible over whichever band they sit on.
 struct TimelineCanvas: View {
     let now: Date
     let timeZone: TimeZone
@@ -15,16 +15,22 @@ struct TimelineCanvas: View {
     let asleepEndHour: Int
     var windowHours: Double = 10
 
-    // Palette tuned for the translucent dark popover background.
-    private let awakeColor = Color(red: 0.96, green: 0.88, blue: 0.64)   // warm daylight
-    private let asleepColor = Color(red: 0.11, green: 0.13, blue: 0.24)  // deep cool night
-    private let centerLineColor = Color(red: 0.90, green: 0.22, blue: 0.20) // strong red "now"
+    // Palette: dark track matching the popover's dark theme, with "available"
+    // green blocks for awake hours floating inside it.
+    private let trackColor = Color(white: 0.16)                          // dark-mode track
+    private let awakeColor = Color(red: 0.30, green: 0.73, blue: 0.41)   // "available" green
+    private let centerLineColor = Color(red: 0.95, green: 0.62, blue: 0.10) // amber "now"
+
+    // Inset of the green block inside the track (Tailwind-ish padding), plus
+    // its corner radius.
+    private let blockInset: CGFloat = 2
+    private let blockCorner: CGFloat = 4
 
     // Tick/label colours, chosen per-band for contrast.
-    private let tickOnAwake = Color.black.opacity(0.28)
+    private let tickOnAwake = Color.black.opacity(0.32)
     private let tickOnAsleep = Color.white.opacity(0.30)
-    private let labelOnAwake = Color.black.opacity(0.55)
-    private let labelOnAsleep = Color.white.opacity(0.60)
+    private let labelOnAwake = Color.black.opacity(0.60)
+    private let labelOnAsleep = Color.white.opacity(0.55)
 
     var body: some View {
         Canvas { context, size in
@@ -38,18 +44,32 @@ struct TimelineCanvas: View {
                 asleepEndHour: asleepEndHour
             )
 
-            // 1) Asleep / awake background.
-            for seg in geo.asleepSegments() {
+            // 1) Dark track fills the whole strip (asleep time = bare track).
+            context.fill(
+                Path(CGRect(origin: .zero, size: size)),
+                with: .color(trackColor)
+            )
+
+            // 2) Awake ("available") time as inset, rounded green blocks, with a
+            //    small margin inside the track on every side.
+            for seg in geo.asleepSegments() where !seg.isAsleep {
+                let x = seg.startX + blockInset
+                let width = (seg.endX - seg.startX) - 2 * blockInset
+                guard width > 0 else { continue }
                 let rect = CGRect(
-                    x: seg.startX,
-                    y: 0,
-                    width: max(0, seg.endX - seg.startX),
-                    height: size.height
+                    x: x,
+                    y: blockInset,
+                    width: width,
+                    height: size.height - 2 * blockInset
                 )
-                context.fill(Path(rect), with: .color(seg.isAsleep ? asleepColor : awakeColor))
+                let radius = min(blockCorner, rect.height / 2)
+                context.fill(
+                    Path(roundedRect: rect, cornerRadius: radius, style: .continuous),
+                    with: .color(awakeColor)
+                )
             }
 
-            // 2) Hour ticks + labels (coloured to contrast their band).
+            // 3) Hour ticks + labels (coloured to contrast their band).
             for tick in geo.ticks() {
                 guard tick.x >= 0, tick.x <= size.width else { continue }
                 let tickColor = tick.isAsleep ? tickOnAsleep : tickOnAwake
@@ -66,7 +86,7 @@ struct TimelineCanvas: View {
                 context.draw(label, at: CGPoint(x: tick.x, y: 7), anchor: .center)
             }
 
-            // 3) Center line = now (drawn last so it sits on top).
+            // 4) Center line = now (drawn last so it sits on top).
             var center = Path()
             center.move(to: CGPoint(x: geo.centerX, y: 0))
             center.addLine(to: CGPoint(x: geo.centerX, y: size.height))

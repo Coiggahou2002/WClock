@@ -61,8 +61,17 @@ ad-hoc code-signs it. No `.xcodeproj` is required.
   at-a-glance awake/asleep cue. Per-zone schedules were considered and
   deferred; the geometry already takes the window as a parameter, so moving to
   per-zone later is a localized change.
-- Awake hours are shaded warm/light and asleep hours dark/cool (rather than the
-  original cool-blue "day" band, which read as night and inverted the intended
-  cue); hour labels flip dark/light to stay legible over either band.
+- Availability shading: a dark track (asleep) with inset, rounded green
+  "available" blocks for awake hours. This replaced an earlier warm-yellow
+  "day" band (which looked odd) and the original cool-blue band (which read as
+  night and inverted the cue). Green = reachable is the intended signal. Hour
+  labels flip dark/light to stay legible over either region.
+- Country flags are derived at runtime by parsing the system tzdata table
+  (`/usr/share/zoneinfo/zone.tab`) rather than hardcoding ~400 zone→country
+  rows; identifiers absent from the table fall back to a globe. See
+  `FlagProvider`.
+- The menu-bar zone is user-selectable and defaults to the first non-local
+  zone, because the macOS system clock already shows local time — so showing
+  local in our item too would be redundant.
 - Status-item title updates once per second via a `Timer`; negligible cost,
   keeps the minute display accurate.

@@ -8,16 +8,20 @@ A lightweight macOS **menu-bar** app that shows several time zones as stacked
 
 ## What it does
 
-- Sits in the top-right **menu bar** showing your **primary zone's** time + a
-  clock icon (no Dock icon — it's a menu-bar agent).
-- Click it to open a popover with **one horizontal timeline per zone**, stacked.
-- Each strip spans **±5 hours around now (10h total)**. A single **orange
-  center line** marks the current instant across every strip — so each zone's
-  local time at "now" lines up vertically (e.g. 11:28 Beijing aligns with 04:28
-  London on the same line).
-- **Asleep/awake shading** on each strip (asleep = dark/cool, awake = warm/light)
-  so you can see at a glance who's up. The asleep window defaults to **00:00–08:00**
-  and is configurable in Settings (editable start/end + one-tap presets), applied
+- Sits in the top-right **menu bar** showing a chosen zone's time, its **country
+  flag**, and a clock icon (no Dock icon — it's a menu-bar agent). The menu-bar
+  zone is **user-selectable** and defaults to a non-local zone, since macOS
+  already shows your local time in the system clock.
+- Click it to open a popover with **one horizontal timeline per zone**, stacked,
+  each prefixed by its **country flag** for quick scanning.
+- Each strip spans **±5 hours around now (10h total)**. A single **amber center
+  line** marks the current instant across every strip — so each zone's local
+  time at "now" lines up vertically (e.g. 11:28 Beijing aligns with 04:28 London
+  on the same line).
+- **Availability shading** on each strip: a dark track (asleep / not reachable)
+  with **rounded green "available" blocks** for awake hours, so you can see at a
+  glance who's up. The asleep window defaults to **00:00–08:00** and is
+  configurable in Settings (editable start/end + one-tap presets), applied
   globally to every zone. It wraps past midnight (e.g. 22:00–06:00).
 - Hour ticks with labels; midnight is emphasised; each row shows the zone's
   current date and its offset from your local zone (e.g. `-7h`, `+5.5h`).
